@@ -225,13 +225,13 @@ object impl(me:host) = {
 					exit(EXIT_FAILURE);
 				}
 			}*/
-			if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev)) < 0) {
+			/*if (setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev)) < 0) {
 				perror("setsockopt: bind to device");
 				exit(EXIT_FAILURE);
-			}
-			struct sockaddr_in v_src = {};
-			v_src.sin_addr.s_addr = htonl(addr.addr);
-			//inet_pton(AF_INET, htonl(addr.addr), &v_src.sin_addr.s_addr);
+			}*/
+			struct sockaddr_in v_src;
+			//v_src.sin_addr.s_addr = 
+			inet_pton(AF_INET, "11.0.0.1", &(v_src.sin_addr.s_addr)); //htonl(addr.addr);
 			v_src.sin_port = htons(addr.port);
 			v_src.sin_family = AF_INET;
 			
@@ -239,9 +239,12 @@ object impl(me:host) = {
 			if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &error, sizeof(int)) < 0 || setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &error, sizeof(int)) < 0)
 				perror("setsockopt(SO_REUSEADDR) failed");
 		
-			if (bind(s, (struct sockaddr*) &v_src, sizeof(struct sockaddr_in)) != 0) {
-				char s[100];
-				sprintf(s, "bind to addr %u", htonl(addr.addr));
+			if (bind(s, (struct sockaddr*) &v_src, sizeof(v_src)) != 0) {
+               char s[200];
+               char buf[INET_ADDRSTRLEN];
+               inet_ntop(AF_INET, (struct in_addr*) &(v_src.sin_addr), buf, INET_ADDRSTRLEN);
+               uint8_t *truc = (uint8_t *) &v_src.sin_addr.s_addr;
+               sprintf(s, "errno: %i ; bind to addr %u.%u.%u.%u : %s ; port: %i -- ", errno, truc[0], truc[1], truc[2], truc[3], buf, ntohs(v_src.sin_port));
 				perror(s);
 				exit(EXIT_FAILURE);
 			}
